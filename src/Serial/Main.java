@@ -19,7 +19,7 @@ public class Main {
         monitorAcceso.setTitle("SCAEI - ITESA ver.1.0");
         monitorAcceso.setSize(new Dimension(416,334));
         monitorAcceso.setLocationRelativeTo(null);
-        monitorAcceso.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        monitorAcceso.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         monitorAcceso.setVisible(true);
     }//END main()
     
