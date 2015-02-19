@@ -5,6 +5,8 @@
  */
 package Serial;
 
+import BaseDatos.DBQueries;
+
 /**
  *
  * @author J.Israel
@@ -191,22 +193,23 @@ public class MonitorAcceso extends javax.swing.JFrame {
 
     private void myInit() {
         Send_Receive serial = new Send_Receive();
+        DBQueries consulta=new DBQueries();
         serial.initialize();
-        Thread t=new Thread() {
+        Thread t = new Thread() {
             @Override
             public void run() {
                 //the following line will keep this app alive for 1000 seconds,
                 //waiting for events to occur and responding to them (printing incoming messages to console).
                 try {
                     int i = 0;
-                    while(true){
-                        if(!serial.getInformation().equals("")){
+                    while (true) {
+                        if (!serial.getInformation().equals("")) {
                             Mensaje.setText("Validando...");
                             Barra.setValue(i);
                             i++;
                         }
                         Thread.sleep(10);
-                        if(i >= 100){
+                        if (i >= 100) {
                             i = 0;
                             Barra.setValue(i);
                             serial.setInformation("");
@@ -216,23 +219,30 @@ public class MonitorAcceso extends javax.swing.JFrame {
                             TagID3.setText(serial.TAG_UID[2]);
                             TagID4.setText(serial.TAG_UID[3]);
                             Mensaje.setText(serial.getStatusLog());
+                            String clave = serial.TAG_UID[0]
+                                    + serial.TAG_UID[1]
+                                    + serial.TAG_UID[2]
+                                    + serial.TAG_UID[3];
+                            clave="ABC-123";
+                            consulta.insertBitacora("Entrada", clave);
                             Thread.sleep(5000);
                             reset();
                         }//END IF(mayor 100)
                     }
-                } catch (InterruptedException ie) {}
+                } catch (InterruptedException ie) {
+                }
             }
         };
         t.start();
         Consola.append("Started\n");
     }//END myInit()
-    
-    private void reset(){
+
+    private void reset() {
         TagID1.setText("00");
         TagID2.setText("00");
         TagID3.setText("00");
         TagID4.setText("00");
         Mensaje.setText("Esperando...");
     }
-    
+
 }//END CLASS

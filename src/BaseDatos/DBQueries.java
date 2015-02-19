@@ -1,4 +1,3 @@
-
 package BaseDatos;
 
 import java.sql.Connection;
@@ -9,122 +8,98 @@ import java.sql.Date;
 import java.sql.Timestamp;
 
 public class DBQueries {
-    private int votos;
-    private String mensaje;
-    private String status;
+
     public static ConexionSGBD conexion;
     public static Connection conectar;
 
+    public String getPriNombre() {
+        return PriNombre;
+    }
+
+    public String getSegNombre() {
+        return SegNombre;
+    }
+
+    public String getApePaterno() {
+        return ApePaterno;
+    }
+
+    public String getApeMaterno() {
+        return ApeMaterno;
+    }
+
+    public String getCveTarjeta() {
+        return CveTarjeta;
+    }
+
+    public void setPriNombre(String PriNombre) {
+        this.PriNombre = PriNombre;
+    }
+
+    public void setSegNombre(String SegNombre) {
+        this.SegNombre = SegNombre;
+    }
+
+    public void setApePaterno(String ApePaterno) {
+        this.ApePaterno = ApePaterno;
+    }
+
+    public void setApeMaterno(String ApeMaterno) {
+        this.ApeMaterno = ApeMaterno;
+    }
+
+    public void setCveTarjeta(String CveTarjeta) {
+        this.CveTarjeta = CveTarjeta;
+    }
+    String PriNombre, SegNombre, ApePaterno, ApeMaterno, CveTarjeta;
+
     public DBQueries() {
-        conexion = new ConexionSGBD("shiftdb","champeto","mysql-f6.homelinux.net","simons83");
+        conexion = new ConexionSGBD("shiftdb", "eduardomq", "shift-f6.ddns.net", "lalo12345");
         conectar = conexion.ConectToDatabase();
     }
 
-    public int getVotos() {
-        return votos;
-    }
-
-    public void setVotos(int votos) {
-        this.votos = votos;
-    }
-
-    
-
-    public String getMensaje() {
-        return mensaje;
-    }
-
-    public void setMensaje(String mensaje) {
-        this.mensaje = mensaje;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    
-    public int getVotosEstado(String candidato){
-        try{
-            try (Statement consulta = conectar.createStatement()) {
-                String query = "SELECT sum(numVotos) as numVotos FROM resultados WHERE cveCandidato='" + candidato + "'";
-                try (ResultSet resultado = consulta.executeQuery(query)) {
-                    if(resultado.next()){
-                        setVotos(resultado.getInt("numVotos"));
-                    }
-                    resultado.close();
-                }
-                consulta.close();
-            }
-        }catch(Exception e){
-            System.out.println("Error SQL"+e);
-        }
-        return getVotos();
-    }
-    
-    public String[] getEstadoCasilla(String casilla){
-        try{
-            try (Statement consulta = conectar.createStatement()) {
-                String query = "SELECT status, mensaje FROM eventos WHERE cveFuncionario='"+ casilla+"'";
-                try (ResultSet resultado = consulta.executeQuery(query)) {
-                    if(resultado.next()){
-                        setStatus(resultado.getString("status"));
-                        setMensaje(resultado.getString("mensaje"));
-                    }
-                    resultado.close();
-                }
-                consulta.close();
-            }
-        }catch(Exception e){
-            System.out.println("Error SQL"+e);
-        }
-        String estadoCasilla[] = {
-            getStatus(),
-            getMensaje(),
-        };
-        return estadoCasilla;
-    }
-        
-    public void updateEstado(String casilla, String msj, String status) {
+    public boolean searchClave(String casilla) {
         try {
-            String query = "UPDATE estado set mensaje=?, status=? WHERE cveCasilla= '" + casilla + "'";
-            PreparedStatement consulta = conectar.prepareStatement(query);
-            consulta.setString(1, msj);
-            consulta.setString(2, status);
-            consulta.executeUpdate();
+            try (Statement consulta = conectar.createStatement()) {
+                String query = "Select e.PriNombre,e.SegNombre,e.ApePaterno,e.ApeMaterno, t.CveTarjeta\n"
+                        + "From Empleados e inner join Tarjetas t \n"
+                        + "on e.CveEmpleado=t.CveEmpleado where\n"
+                        + "(Select t.CveEmpleado From tarjetas t inner join vehiculos v \n"
+                        + "on t.CveEmpleado=v.CveEmpleado where \n"
+                        + "(Select v.CveMatricula From Bitacorascaei b inner join Vehiculos v\n"
+                        + "on v.cveMatricula=b.cveMatricula));";
+                try (ResultSet resultado = consulta.executeQuery(query)) {
+                    if (resultado.next()) {
+                        PriNombre = "e.PriNombre";
+                        SegNombre = "e.SegNombre";
+                        ApePaterno = "e.ApePaterno";
+                        ApeMaterno = "e.e.ApeMaterno";
+                        CveTarjeta = "t.CveTarjeta";
+                    }
+                    resultado.close();
+                }
+                consulta.close();
+            }
         } catch (Exception e) {
-            System.out.println("Error SQL");
+            System.out.println("Error SQL" + e);
         }
+        return true;
     }
-    
-    public void insertBitacora(String cveFuncionario, String asunto, String nota, String fecha, String hora) {
+
+    public void insertBitacora(String TipEvento, String cveMatricula) {
         Date fechaSystem = new Date(System.currentTimeMillis());
         Timestamp horaSystem = new Timestamp(fechaSystem.getTime());
         try {
-            String query = "INSERT INTO bitacoras VALUES(?,?,?,?,?)";
+            String query = "INSERT INTO bitacorascaei (TipEvento, Hora, Fecha, CveMatricula) VALUES(?,?,?,?)";
             PreparedStatement consulta = conectar.prepareStatement(query);
-            consulta.setString(1, cveFuncionario);
-            consulta.setString(2, asunto);
-            consulta.setString(3, nota);
-            consulta.setDate(4, fechaSystem);
-            consulta.setTimestamp(5, horaSystem);
+            consulta.setString(1, TipEvento);
+            consulta.setTimestamp(2, horaSystem);
+            consulta.setDate(3, fechaSystem);
+            consulta.setString(4, cveMatricula);
+
             consulta.executeUpdate();
         } catch (Exception e) {
-            System.out.println("Error SQL");
+            System.out.println("Error SQL INSERT " + e.getMessage());
         }
     }
-
-    public void updateResultados(String celular, String candidato, String votos) {
-        try {
-            String query = "UPDATE resultados SET numvotos=?  WHERE cveFuncionario= '" + celular + "' and cveCandidato= '" + candidato + "'";
-            PreparedStatement consulta = conectar.prepareStatement(query);
-            consulta.setString(1, votos);
-            consulta.executeUpdate();
-        } catch (Exception e) {
-            System.out.println("Error SQL");
-        }
-    }    
 }
